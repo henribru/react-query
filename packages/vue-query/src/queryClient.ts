@@ -157,7 +157,17 @@ export class QueryClient extends QC {
     filters: MaybeRefDeep<QueryFilters> = {},
     options: MaybeRefDeep<ResetOptions> = {},
   ): Promise<void> {
-    return super.resetQueries(cloneDeepUnref(filters), cloneDeepUnref(options))
+    // (dosipiuk): We need to delay `invalidate` execution to next macro task for all reactive values to be updated.
+    // This ensures that `context` in `queryFn` while `invalidating` along reactive variable change has correct value.
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        await super.resetQueries(
+          cloneDeepUnref(filters),
+          cloneDeepUnref(options),
+        )
+        resolve()
+      }, 0)
+    })
   }
 
   cancelQueries(
@@ -188,10 +198,17 @@ export class QueryClient extends QC {
     filters: MaybeRefDeep<RefetchQueryFilters> = {},
     options: MaybeRefDeep<RefetchOptions> = {},
   ): Promise<void> {
-    return super.refetchQueries(
-      cloneDeepUnref(filters),
-      cloneDeepUnref(options),
-    )
+    // (dosipiuk): We need to delay `invalidate` execution to next macro task for all reactive values to be updated.
+    // This ensures that `context` in `queryFn` while `invalidating` along reactive variable change has correct value.
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        await super.refetchQueries(
+          cloneDeepUnref(filters),
+          cloneDeepUnref(options),
+        )
+        resolve()
+      }, 0)
+    })
   }
 
   fetchQuery<
